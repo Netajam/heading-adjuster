@@ -4,8 +4,8 @@
  * `resolveTypeScript.mjs` points the bare `obsidian` specifier here when tests
  * run. Nothing in this file pretends to work: it exists so that a module which
  * imports Obsidian at the top can still be imported for the sake of the pure
- * functions further down it — `defaultLevelFor` in `settings/settings.ts` is
- * the case that needs it.
+ * functions further down it — `readSettings` in `settings/settings.ts`, which
+ * reaches Obsidian only through the tab it installs, is the case that needs it.
  *
  * Anything that actually drives one of these classes wants a real Obsidian, not
  * this. If a test starts leaning on the behaviour of a stub below, that is a

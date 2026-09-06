@@ -3,7 +3,7 @@ import type {
   SettingSliderControl,
   SettingToggleControl,
 } from 'obsidian';
-import type { HeadingAdjusterSettings, HeadingPlacement } from '../contracts';
+import type { HeadingAdjusterSettings } from './preferences';
 
 /**
  * What the settings are, said once and in one place.
@@ -50,7 +50,7 @@ export const OPTIONS = {
     root: 'Top level (#)',
     sibling: 'Same level as the heading above',
     child: 'One level below the heading above',
-  } satisfies Record<HeadingPlacement, string>,
+  } satisfies Record<HeadingAdjusterSettings['toggleTarget'], string>,
   customRangeTop: {
     'note-start': 'Top of the note',
     cursor: 'Cursor line',
