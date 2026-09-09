@@ -23,7 +23,7 @@ Breaking one fails the build.
 ## The tree
 
 ```
-main.ts                              root
+main.ts                              root — starts the two folders, holds nothing
 ├── commands/commandSurfaces.ts      door — ribbon icon + palette entries
 │   ├── commands/icons.ts            one symbol per action
 │   └── commands/adjustmentCommands.ts
@@ -47,11 +47,12 @@ main.ts                              root
 │       └── ui/levelInputModal.ts    door — the level dialog
 │           └── ui/levelInputForm.ts
 │               └── ui/submissionValidation.ts
-└── settings/settings.ts             door
+└── settings/settings.ts             door — owns the record, answers about it
     └── settings/settingsTab.ts      how Obsidian is handed them
         └── settings/controls.ts     what the settings are
 
-contracts.ts                         shared vocabulary — outside the tree
+contracts.d.ts                       words every layer says — outside the tree
+settings/preferences.d.ts            the settings record — outside it, inside settings/
 ```
 
 ## How a leaf stays a leaf
@@ -78,18 +79,45 @@ and nothing has to be passed back up.
 
 ## The one carve-out
 
-`contracts.ts` declares types and nothing else — no functions, no constants.
-`RejectionReason` lives there for the same reason `AdjustmentOperation` does:
-`core/` decides one and `editor/` is what says it out loud, so the word belongs
-to neither.
-Those declarations are erased at compile time, so importing them couples
-nothing and none of it appears in the shipped bundle. It is vocabulary, not a
-dependency, and it sits outside the tree.
+A module that declares types and nothing else — no functions, no constants —
+sits outside the tree. Those declarations are erased at compile time, so
+importing them couples nothing and none of it appears in the shipped bundle. It
+is vocabulary, not a dependency.
 
 The exemption is earned per file, not granted by name: the architecture test
-checks that an exempt module contains nothing that can run and imports nothing
-itself. Add one function to `contracts.ts` and it stops qualifying — the tree
-rule starts applying and immediately fails on its seven importers.
+checks that an exempt module contains nothing that can run, and that everything
+it imports is erased too. Add one function to `contracts.d.ts` and it stops
+qualifying — the tree rule starts applying and immediately fails on its
+importers.
+
+There are two such modules, and which one a declaration belongs in is a
+question about who owns it.
+
+`contracts.d.ts` holds the words. `AdjustmentOperation`, `HeadingPlacement`,
+`LinePlacement` and `RejectionReason` are two- to four-member unions that name
+a thing rather than describe one, and no layer owns them: `core/` decides a
+`RejectionReason` and `editor/` is what says it out loud, so the word belongs
+to neither. `ConversionSettings` is there for the same reason — `commands/`,
+`editor/` and `core/` all name it, because a switch the user flips has to
+travel from the plugin down to the file that reads it.
+
+`settings/preferences.d.ts` holds the record. `HeadingAdjusterSettings` and
+`SettingsHost` are not shared words — the three files in `settings/` are the
+whole of who names them, and nothing outside the folder does. It sits beside
+them because the record is needed at every level of the chain
+`settings.ts → settingsTab.ts → controls.ts`, and a type wanted by a folder's
+door *and* its middle *and* its leaf cannot be declared in any of them:
+declared in the door, the middle importing it closes a loop; declared in the
+leaf, the door importing it gives the leaf two parents. An erased sibling is
+the only place left, and because it is erased it costs no edge from any of the
+three.
+
+That only works while the folder is the whole of who names it. The moment an
+outsider needs the record too, the erased sibling becomes a second way into the
+folder — which is what happened while `main.ts` held the settings object and
+implemented `SettingsHost`. The fix was not to move the type but to remove the
+outsider: `settings/` owns the record now and answers questions about it
+instead of handing it out, so `main.ts` names `settings.ts` and nothing else.
 
 ## Why `line/` is a folder
 
@@ -174,8 +202,12 @@ than leaving each caller to work them out.
   left. The caret is this layer's business alone — `core/` returns edits and
   has no idea anyone is looking at the file — and it is set inside the same
   transaction, so putting it right costs no second undo step.
-- **`settings/`** is the policy — defaults, how a stored value is read back,
-  how a default is chosen — with the dialog that edits it behind the door.
+- **`settings/`** owns the preferences: it reads them, hands them to the tab
+  that edits them, persists them, and answers questions about them. The record
+  never leaves — `openPreferences` returns `Preferences`, which is four answers
+  and no data — so the folder has exactly one way in and its shape is nobody
+  else's business. It is also the policy — defaults, how a stored value is read
+  back, how a default is chosen — with the dialog that edits it behind the door.
   `controls.ts` is the list of settings there are; `settingsTab.ts` is the two
   ways Obsidian gets them, described from 1.13 and drawn by hand before that.
   Both paths read the one list, so neither can describe a setting the other
@@ -189,9 +221,21 @@ than leaving each caller to work them out.
   palette entry and the ribbon item read it, so the two cannot drift. The
   ribbon menu is also where every symbol appears at once, which is what makes
   a missing one visible.
-- **`commands/`** never imports `settings/`. `CommandContext` asks for
-  `defaultLevel(operation)` rather than for the settings object, because the
-  plugin is what owns the settings.
+- **`commands/`** never imports `settings/`, and `settings/` never imports
+  `commands/`. `CommandContext` asks for `defaultLevel(operation)` rather than
+  for the settings object; `Preferences` offers exactly that. The two are near
+  enough to be one interface and are deliberately two, declared independently
+  and matched structurally — the same trade `core/` makes when a leaf states
+  the shape it needs and `Heading` satisfies it without knowing.
+
+  This is also the answer to "could the record just be passed down the chain?".
+  The *value* already is. The *name* cannot be: a type has no runtime, so the
+  only ways a second file can say it are to import it, to be generic over it,
+  or to restate it. A generic here would have to be constrained on the very
+  fields it was dodging — `storeOption` writes four of them by name — so it
+  buys nothing and adds a parameter to every signature. Asking for the answer
+  is the fourth way out, and it is the one that means nothing has to cross the
+  boundary at all.
 
 ## Tests
 

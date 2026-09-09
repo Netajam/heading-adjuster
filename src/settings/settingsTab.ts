@@ -1,5 +1,5 @@
-import type { App, Plugin, SettingDefinitionItem } from 'obsidian';
-import type { HeadingAdjusterSettings, SettingsHost } from '../contracts';
+import type { Plugin, SettingDefinitionItem } from 'obsidian';
+import type { HeadingAdjusterSettings, SettingsHost } from './preferences';
 import type { ControlDefinition } from './controls';
 import { PluginSettingTab, Setting } from 'obsidian';
 import { OPTIONS, SETTINGS } from './controls';
@@ -17,9 +17,9 @@ import { OPTIONS, SETTINGS } from './controls';
 export class HeadingAdjusterSettingTab extends PluginSettingTab {
   private readonly host: SettingsHost;
 
-  constructor(app: App, plugin: Plugin & SettingsHost) {
-    super(app, plugin);
-    this.host = plugin;
+  constructor(plugin: Plugin, host: SettingsHost) {
+    super(plugin.app, plugin);
+    this.host = host;
   }
 
   /**

@@ -19,6 +19,11 @@ import type { SourceFile } from './support/sourceTree';
  * appear in the shipped module graph — it is vocabulary, not a dependency. The
  * carve-out is earned per file, not granted by name: a type-only module that
  * grows a function stops qualifying and the tree rule starts applying to it.
+ *
+ * There may be more than one. `contracts.d.ts` holds the words every layer
+ * says; a folder whose own shapes nothing outside it reads keeps them beside
+ * itself instead, which is what stops one file at the root of `src/` becoming
+ * the place every folder's data structure ends up.
  */
 
 const LIMIT = 7;
@@ -169,8 +174,24 @@ describe('the type-only carve-out stays honest', () => {
       );
     });
 
-    test(`${file.path} imports nothing itself`, () => {
-      assert.deepEqual(file.imports.map((imported) => imported.to), []);
+    /**
+     * A type-only module may name another one — vocabulary built on vocabulary
+     * is still vocabulary. What it may never name is a module that can run,
+     * because that edge survives compilation and would drag the runtime file
+     * into the graph behind an exemption granted on the promise that nothing
+     * here reaches it. So the check is on what it imports, not that it imports.
+     */
+    test(`${file.path} imports only other type-only modules`, () => {
+      const runtime = file.imports
+        .map((imported) => byPath.get(imported.to))
+        .filter((imported) => imported && !imported.typeOnly)
+        .map((imported) => imported?.path);
+
+      assert.deepEqual(
+        runtime,
+        [],
+        `${file.path} is exempt from the tree rule, so everything it imports must be erased too`
+      );
     });
   }
 });

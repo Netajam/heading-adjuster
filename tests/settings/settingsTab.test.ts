@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test';
 import { strict as assert } from 'node:assert';
 
-import type { HeadingAdjusterSettings } from '../../src/contracts';
+import type { HeadingAdjusterSettings } from '../../src/settings/preferences';
 import { readSettings } from '../../src/settings/settings';
 import { HeadingAdjusterSettingTab } from '../../src/settings/settingsTab';
 
@@ -30,7 +30,7 @@ function tabFor(settings: HeadingAdjusterSettings) {
     },
   };
 
-  return { tab: new HeadingAdjusterSettingTab(null as never, host as never), saves };
+  return { tab: new HeadingAdjusterSettingTab({} as never, host as never), saves };
 }
 
 /**
