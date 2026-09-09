@@ -17,7 +17,7 @@ import {
  * into `commands/`.
  *
  * The palette offers the same five scopes in each direction, so those are
- * generated from the pair, and the four placements from their own table: a
+ * generated from the pair, and the placements from their own table: a
  * placement has no direction, so there is nothing to pair it with. The ribbon
  * menu is written out, because its order and its separators are the thing being
  * designed.
@@ -40,10 +40,25 @@ const OPERATIONS: AdjustmentOperation[] = ['increase', 'decrease'];
  * The placements, with the words they are offered under: the palette entry
  * names the line because it stands alone in a search, the menu entry does not
  * because the group it sits in already said so.
+ *
+ * Every one of them has a command, the four a toggle can be pointed at
+ * included. Where the toggle is aimed is a choice about one key; it was never
+ * meant to be a choice about which levels the plugin can reach, and while
+ * `root` was reachable only through it, it was one. A user who needs two of
+ * these levels binds two commands and keeps the toggle for a third.
+ *
+ * Ordered the way the outline is: first the two that answer about the line
+ * alone, then the four that answer about where it sits, shallowest first.
  */
 const PLACEMENTS: Array<[LinePlacement, string, string]> = [
   ['toggle', 'Toggle heading on current line', 'Toggle heading'],
   ['plain', 'Remove heading from current line', 'Remove heading'],
+  ['root', 'Make current line a top-level heading', 'Top-level heading'],
+  [
+    'parent',
+    'Make current line a parent of the heading above',
+    'Parent of the heading above',
+  ],
   [
     'sibling',
     'Make current line a sibling of the heading above',

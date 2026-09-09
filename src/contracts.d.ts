@@ -15,14 +15,20 @@
 export type AdjustmentOperation = 'increase' | 'decrease';
 
 /**
- * The three ways of naming a level for a line that is to be a heading.
+ * The four ways of naming a level for a line that is to be a heading.
  *
- * `root` is the top of the note and answers to nothing above it. The other two
- * are read against the enclosing heading, the nearest heading above the line:
- * `sibling` takes its level, `child` one deeper. These are also the three a
- * toggle can be pointed at, which is why they are a word of their own.
+ * `root` is the top of the note and answers to nothing above it. The other
+ * three are read against the enclosing heading, the nearest heading above the
+ * line: `parent` sits one level shallower, `sibling` takes its level, `child`
+ * one deeper. These are also the four a toggle can be pointed at, which is why
+ * they are a word of their own.
+ *
+ * `parent` is the only one that changes what the heading above it answers to:
+ * placed there, the line encloses that heading rather than joining it. It is
+ * how a section is opened above work already written, which is the direction
+ * an outline is read in but not the one it is usually typed in.
  */
-export type HeadingPlacement = 'root' | 'sibling' | 'child';
+export type HeadingPlacement = 'root' | 'parent' | 'sibling' | 'child';
 
 /**
  * Where the current line's heading sits relative to the section it is in.

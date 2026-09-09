@@ -505,6 +505,50 @@ describe('placing the current line against the section it sits in', () => {
     );
   });
 
+  test('a parent sits one level over the heading above it, and so encloses it', () => {
+    const { text, changedCount } = place(
+      doc`
+        # A
+        ## B
+        ### C
+        some prose
+      `,
+      3,
+      'parent'
+    );
+
+    assert.equal(
+      text,
+      doc`
+        # A
+        ## B
+        ### C
+        ## some prose
+      `
+    );
+    assert.equal(changedCount, 1);
+  });
+
+  test('a parent reads the outline, not the level the line is written at', () => {
+    // The issue's second scenario: the same command from any starting level
+    // lands on the same one, which is what makes it a single repeatable step.
+    for (const line of ['some prose', '# some prose', '###### some prose']) {
+      const { text } = place(
+        doc`
+          # A
+          ## B
+          ### C
+          #### D
+          ${line}
+        `,
+        4,
+        'parent'
+      );
+
+      assert.equal(text.split('\n')[4], '### some prose');
+    }
+  });
+
   test('the heading above is the nearest one, not the shallowest', () => {
     const { text } = place(
       doc`
@@ -570,6 +614,26 @@ describe('placing the current line against the section it sits in', () => {
   test('with no heading above, a placement lands on H1', () => {
     assert.equal(place('some prose', 0, 'sibling').text, '# some prose');
     assert.equal(place('some prose', 0, 'child').text, '# some prose');
+    assert.equal(place('some prose', 0, 'parent').text, '# some prose');
+  });
+
+  test('a parent of an H1 is an H1 — there is nothing over the top of the note', () => {
+    const { text } = place(
+      doc`
+        # A
+        some prose
+      `,
+      1,
+      'parent'
+    );
+
+    assert.equal(
+      text,
+      doc`
+        # A
+        # some prose
+      `
+    );
   });
 
   test('stops at H6 rather than writing a seventh hash', () => {

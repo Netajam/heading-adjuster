@@ -48,6 +48,7 @@ type ToggleKey = 'headingsToBullets' | 'bulletsToHeadings' | 'liftNestedOnHeadin
 export const OPTIONS = {
   toggleTarget: {
     root: 'Top level (#)',
+    parent: 'One level above the heading above',
     sibling: 'Same level as the heading above',
     child: 'One level below the heading above',
   } satisfies Record<HeadingAdjusterSettings['toggleTarget'], string>,
@@ -140,7 +141,8 @@ export const SETTINGS: SettingSection[] = [
         name: 'Toggle puts the heading at',
         desc: 'Which level "Toggle heading on current line" writes, and so which level '
           + 'it takes back off. A line already at that level loses its heading; a '
-          + 'line anywhere else is moved to it first.',
+          + 'line anywhere else is moved to it first. Each of the four also has a '
+          + 'command of its own, so this only decides where the one toggle aims.',
         control: {
           type: 'dropdown',
           key: 'toggleTarget',
@@ -149,8 +151,8 @@ export const SETTINGS: SettingSection[] = [
       },
       {
         name: 'Bring nested list items along',
-        desc: 'When "Toggle heading", "Sibling of the heading above" or "Child of the '
-          + 'heading above" turns a list item into a heading, move the items nested '
+        desc: 'When a placement command — "Toggle heading", or any of the four that '
+          + 'name a level — turns a list item into a heading, move the items nested '
           + 'under it out by as much as it lost. Without this they stay at their old '
           + 'indent under a heading that no longer encloses them.',
         control: { type: 'toggle', key: 'liftNestedOnHeading' },
