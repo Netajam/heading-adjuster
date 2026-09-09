@@ -12,8 +12,8 @@ The Heading Adjuster Plugin for Obsidian allows users to easily adjust the level
 - Adjust everything after the cursor, or everything before it, on one hotkey.
 - Adjust just the line the cursor is on, including turning a plain line into a
   heading and back again.
-- Make the current line a sibling or a child of the heading above it, or remove
-  its heading outright.
+- Make the current line a parent, a sibling or a child of the heading above it,
+  put it at the top level, or remove its heading outright.
 - Convert headings pushed past the deepest allowed level into bulleted list
   items, and optionally convert them back on the way out.
 - Use default settings for heading adjustments.
@@ -62,10 +62,19 @@ say.
   binding for both halves — see [Toggling](#toggling) below.
 - **Remove heading from current line**: Turns the current line back into plain
   text, whatever level it was at.
+- **Make current line a top-level heading**: Sets the current line to `#`,
+  whatever sits above it.
+- **Make current line a parent of the heading above**: Sets the current line one
+  level *shallower* than the nearest heading above it, so that heading ends up
+  inside the new one.
 - **Make current line a sibling of the heading above**: Sets the current line to
   the level of the nearest heading above it.
 - **Make current line a child of the heading above**: Sets the current line one
   level deeper than the nearest heading above it.
+
+Each of those four is its own command, so you never have to choose one direction
+over another in the settings — bind the ones you use and leave the toggle for
+whichever you want on a single key.
 
 ### Ribbon Icon
 
@@ -76,8 +85,8 @@ Clicking the ribbon icon opens a menu with options to:
 - Increase or decrease the selection by your default.
 - Increase or decrease your custom range by your default.
 - Increase or decrease the current line by your default.
-- Remove the current line's heading, or place it as a sibling or child of the
-  heading above.
+- Remove the current line's heading, or place it at the top level or as a
+  parent, sibling or child of the heading above.
 
 ### On Mobile
 
@@ -92,11 +101,14 @@ command this plugin registers carries its own symbol and no two are alike:
 | Ringed chevron   | your custom range            |
 | Bare chevron     | the current line             |
 | A struck through | remove the heading           |
+| Large H1         | top-level heading            |
+| Arrow turning out| parent of the heading above  |
 | Equals sign      | sibling of the heading above |
 | Arrow turning in | child of the heading above   |
 
 Up increases and down decreases throughout, so there are two things to learn
-rather than fourteen.
+rather than sixteen. The two turning arrows are mirrors of one another, for the
+same reason: parent and child are one step in opposite directions.
 
 If you only have one slot, spend it on the hash: "Toggle heading on current
 line" both makes a section and unmakes it.
@@ -138,28 +150,49 @@ is left as the code it is.
 
 #### Placing a line instead of shifting it
 
-The three placement commands say what the line should *be* rather than how far
-to move it, so they land in one step and ignore your default shift. Two of them
-read the nearest heading above the current line:
+The placement commands say what the line should *be* rather than how far to move
+it, so they land in one step and ignore your default shift. Three of them read
+the nearest heading above the current line:
 
 ```markdown
 # Guide
 ## Setup
-some prose        ← cursor here; the heading above is `## Setup`
+### Prerequisites
+some prose        ← cursor here; the heading above is `### Prerequisites`
 ```
 
-| Command                                          | Result           |
-| ------------------------------------------------ | ---------------- |
-| Make current line a sibling of the heading above | `## some prose`  |
-| Make current line a child of the heading above   | `### some prose` |
-| Remove heading from current line                 | `some prose`     |
+| Command                                          | Result            |
+| ------------------------------------------------ | ----------------- |
+| Make current line a parent of the heading above  | `## some prose`   |
+| Make current line a sibling of the heading above | `### some prose`  |
+| Make current line a child of the heading above   | `#### some prose` |
+| Make current line a top-level heading            | `# some prose`    |
+| Remove heading from current line                 | `some prose`      |
 
 They work on a line that is already a heading too, which is how you re-level one
 without counting: put the cursor on it and make it a child of the heading above.
+Because none of them reads the level the line is written at, the same command
+lands in the same place whether the line was plain text, an `#` or an `######` —
+so it is one repeatable step rather than a count-and-adjust.
 
-If there is no heading above the line, both "sibling" and "child" produce an `#`
-— the note itself is what encloses the line. A heading inside a code fence does
-not count as the heading above, and a line inside one is left alone.
+**Parent** is the one that changes the outline around it. Where sibling and
+child join the section above, a parent *encloses* it:
+
+```markdown
+# Guide            # Guide
+## Setup     →     ## Setup
+### Notes          ## some prose      ← `### Notes` is now inside this
+some prose
+```
+
+That is how you open a section above work you have already written, which is the
+direction an outline is read in but rarely the one it gets typed in.
+
+If there is no heading above the line, "parent", "sibling" and "child" all
+produce an `#` — the note itself is what encloses the line. A parent of an `#`
+is an `#` too, since nothing in an outline sits above the top of it. A heading
+inside a code fence does not count as the heading above, and a line inside one is
+left alone.
 
 #### Toggling
 
@@ -177,10 +210,13 @@ some prose        ← cursor here
 | --------------------------------- | ---------------- | ------------ |
 | Same level as the heading above    | `## some prose`  | `some prose` |
 | One level below the heading above  | `### some prose` | `some prose` |
+| One level above the heading above  | `# some prose`   | `some prose` |
 | Top level                          | `# some prose`   | `some prose` |
 
-Which of the three it uses is yours to set, under **Toggle puts the heading at**
-in the settings. It ships as "same level as the heading above".
+Which of the four it uses is yours to set, under **Toggle puts the heading at**
+in the settings. It ships as "same level as the heading above". This only
+decides where the one toggle aims: all four have commands of their own, so
+setting it never puts a level out of reach.
 
 A heading already at some *other* level is moved to the one you chose rather
 than removed, so the second press is what takes it off. That keeps two presses
@@ -213,9 +249,9 @@ it until the next heading. They disagree about what sits underneath, so a line
 that stops being one and starts being the other leaves its content answering to
 nothing.
 
-**Turning a list item into a heading** — with "Toggle heading", "Sibling of the
-heading above" or "Child of the heading above" — brings the items nested under
-it along, by as much as the item itself lost:
+**Turning a list item into a heading** — with "Toggle heading" or any of the
+four placement commands — brings the items nested under it along, by as much as
+the item itself lost:
 
 ```markdown
 - A                    - A
@@ -303,8 +339,10 @@ conversion**:
 - **Default increase level**: The default number of levels to increase headings by.
 - **Default decrease level**: The default number of levels to decrease headings by.
 - **Toggle puts the heading at**: Which level "Toggle heading on current line"
-  writes, and so which level it takes back off — the top level (`#`), the same
-  level as the heading above, or one below it. Defaults to the same level.
+  writes, and so which level it takes back off — the top level (`#`), one level
+  above the heading above, the same level as it, or one below it. Defaults to
+  the same level. Each of the four is also a command in its own right, so this
+  only decides where the one toggle aims.
 - **Bring nested list items along**: When a placement turns a list item into a
   heading, move the items nested under it out by as much as it lost. On by
   default — see [Crossing between a heading and a list

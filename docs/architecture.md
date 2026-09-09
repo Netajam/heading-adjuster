@@ -150,8 +150,11 @@ The folder holds two files because the current line is asked for in two ways.
 A *shift* moves it by a distance, reading the level it is written at; a
 *placement* names a level outright, reading the enclosing heading instead and
 ignoring the line entirely. `placement.ts` owns that second question — which
-level a `plain`, `sibling` or `child` asks for — and `line.ts` owns the part
-they share, which is reading and rewriting the `#` prefix. That gap after the
+level a `plain`, `root`, `parent`, `sibling` or `child` asks for — and `line.ts`
+owns the part they share, which is reading and rewriting the `#` prefix. Three of
+those five are one offset from the enclosing heading, so the file holds a table
+rather than a branch each: `parent` and `child` being ±1 is a fact about the
+outline, and a table is where a reader can see it. That gap after the
 `#`s is why they are here at all rather than reusing `heading.ts` and
 `headingEdits.ts`: those two rewrite a `#` run and leave the whitespace where
 they found it, which is correct for every move that stays a heading and wrong

@@ -37,20 +37,40 @@ describe('the level a placement asks for', () => {
     assert.equal(placedLevel('child', 3, 0, 'sibling'), 4);
   });
 
+  test('a parent sits one level shallower, so it encloses the heading above', () => {
+    assert.equal(placedLevel('parent', 3, 0, 'sibling'), 2);
+    assert.equal(placedLevel('parent', 6, 0, 'sibling'), 5);
+  });
+
+  test('a parent and a child are the same step in opposite directions', () => {
+    for (const enclosing of [2, 3, 4, 5]) {
+      const parent = placedLevel('parent', enclosing, 0, 'sibling');
+      const child = placedLevel('child', enclosing, 0, 'sibling');
+
+      assert.equal(child - parent, 2);
+    }
+  });
+
   test('with nothing above, a sibling of the note itself is an H1', () => {
     assert.equal(placedLevel('sibling', 0, 0, 'sibling'), 1);
     assert.equal(placedLevel('child', 0, 0, 'sibling'), 1);
+  });
+
+  test('a parent stops at H1, because the outline has nothing above it', () => {
+    assert.equal(placedLevel('parent', 1, 0, 'sibling'), 1);
+    assert.equal(placedLevel('parent', 0, 0, 'sibling'), 1);
   });
 
   test('asks past the Markdown limit rather than clamping — the writer does that', () => {
     assert.equal(placedLevel('child', 6, 0, 'sibling'), 7);
   });
 
-  test('the three that name a level do not read the one the line is at', () => {
+  test('the four that name a level do not read the one the line is at', () => {
     for (const level of [0, 1, 3, 6]) {
-      assert.equal(placedLevel('plain', 2, level, 'sibling'), 0);
-      assert.equal(placedLevel('sibling', 2, level, 'sibling'), 2);
-      assert.equal(placedLevel('child', 2, level, 'sibling'), 3);
+      assert.equal(placedLevel('plain', 3, level, 'sibling'), 0);
+      assert.equal(placedLevel('parent', 3, level, 'sibling'), 2);
+      assert.equal(placedLevel('sibling', 3, level, 'sibling'), 3);
+      assert.equal(placedLevel('child', 3, level, 'sibling'), 4);
     }
   });
 });
@@ -64,24 +84,28 @@ describe('the level a root placement asks for', () => {
 
 describe('where a toggle is pointed', () => {
   test('follows its target rather than assuming a sibling', () => {
-    assert.equal(placedLevel('toggle', 2, 0, 'root'), 1);
-    assert.equal(placedLevel('toggle', 2, 0, 'sibling'), 2);
-    assert.equal(placedLevel('toggle', 2, 0, 'child'), 3);
+    assert.equal(placedLevel('toggle', 3, 0, 'root'), 1);
+    assert.equal(placedLevel('toggle', 3, 0, 'parent'), 2);
+    assert.equal(placedLevel('toggle', 3, 0, 'sibling'), 3);
+    assert.equal(placedLevel('toggle', 3, 0, 'child'), 4);
   });
 
   test('comes off when the line is at whichever level it was pointed at', () => {
-    assert.equal(placedLevel('toggle', 2, 1, 'root'), 0);
-    assert.equal(placedLevel('toggle', 2, 2, 'sibling'), 0);
-    assert.equal(placedLevel('toggle', 2, 3, 'child'), 0);
+    assert.equal(placedLevel('toggle', 3, 1, 'root'), 0);
+    assert.equal(placedLevel('toggle', 3, 2, 'parent'), 0);
+    assert.equal(placedLevel('toggle', 3, 3, 'sibling'), 0);
+    assert.equal(placedLevel('toggle', 3, 4, 'child'), 0);
   });
 
-  test('a line at the wrong one of the three is moved, not removed', () => {
+  test('a line at the wrong one of the four is moved, not removed', () => {
     assert.equal(placedLevel('toggle', 2, 2, 'child'), 3);
     assert.equal(placedLevel('toggle', 2, 3, 'sibling'), 2);
+    assert.equal(placedLevel('toggle', 3, 3, 'parent'), 2);
   });
 
   test('the target is ignored by every placement that is not a toggle', () => {
-    for (const target of ['root', 'sibling', 'child'] as const) {
+    for (const target of ['root', 'parent', 'sibling', 'child'] as const) {
+      assert.equal(placedLevel('parent', 4, 0, target), 3);
       assert.equal(placedLevel('sibling', 4, 0, target), 4);
       assert.equal(placedLevel('child', 4, 0, target), 5);
       assert.equal(placedLevel('plain', 4, 0, target), 0);

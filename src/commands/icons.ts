@@ -42,21 +42,22 @@ export const SHIFT_ICON: Record<ShiftScope, Record<AdjustmentOperation, string>>
  * A symbol per placement.
  *
  * These name a level rather than a direction, so they say what the line becomes
- * instead of which way it moves: the markup stripped off, a level held equal, a
- * step in and down.
+ * instead of which way it moves: the markup stripped off, the top of the note,
+ * a step out and up, a level held equal, a step in and down.
+ *
+ * The two corners are deliberately mirrors. `parent` and `child` are the same
+ * move measured in opposite directions, and a user who has learnt one of them
+ * should be able to read the other off its glyph rather than off its name.
  *
  * The toggle takes the `#` itself, because it is the one that does both and is
  * the one a user with a single free toolbar slot will spend it on. Typing the
  * character it adds and removes says more there than any arrow could.
- *
- * `root` is here without a command of its own: it is reachable by pointing the
- * toggle at it, and the record is kept whole so that the day it earns a command
- * the symbol is already chosen rather than picked in a hurry.
  */
 export const PLACEMENT_ICON: Record<LinePlacement, string> = {
   toggle: 'hash',
   plain: 'remove-formatting',
   root: 'heading-1',
+  parent: 'corner-left-up',
   sibling: 'equal',
   child: 'corner-down-right',
 };

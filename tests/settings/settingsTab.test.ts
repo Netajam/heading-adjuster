@@ -173,12 +173,12 @@ describe('setControlValue', () => {
 });
 
 describe('the toggle target dropdown', () => {
-  test('offers exactly the three places a toggle can be pointed', async () => {
+  test('offers exactly the four places a toggle can be pointed', async () => {
     const { tab } = tabFor(await defaults());
     const control = controls(tab).find((each) => each.key === 'toggleTarget');
 
     assert.ok(control && control.type === 'dropdown');
-    assert.deepEqual(Object.keys(control.options), ['root', 'sibling', 'child']);
+    assert.deepEqual(Object.keys(control.options), ['root', 'parent', 'sibling', 'child']);
   });
 
   test('a chosen target is stored and persisted', async () => {

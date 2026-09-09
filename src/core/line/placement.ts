@@ -4,13 +4,29 @@ import type { HeadingPlacement, LinePlacement } from '../../contracts';
  * Which level a line's heading takes when it is placed rather than moved.
  *
  * Placing reads the outline instead of the line: what matters is the enclosing
- * heading — the nearest one above — and whether the line is meant to sit beside
- * it or under it. How deep the line happens to be written now says nothing
- * about where it belongs, which is exactly what separates this from a shift.
+ * heading — the nearest one above — and whether the line is meant to sit above
+ * it, beside it or under it. How deep the line happens to be written now says
+ * nothing about where it belongs, which is exactly what separates this from a
+ * shift.
  */
 
 /** `#` — the shallowest heading, and so the shallowest a placed one can be. */
 const MIN_HEADING_LEVEL = 1;
+
+/**
+ * How far from the enclosing heading each of the relative placements sits.
+ *
+ * `root` is absent because it reads nothing: it names `#` outright, whatever
+ * the outline above the line happens to be. The other three are one question
+ * asked at three distances, so they are a table rather than a branch each — and
+ * the table is what says that `parent` and `child` are the same move in
+ * opposite directions rather than two unrelated rules.
+ */
+const RELATIVE_OFFSET: Record<Exclude<HeadingPlacement, 'root'>, number> = {
+  parent: -1,
+  sibling: 0,
+  child: 1,
+};
 
 /**
  * All this file needs a heading to be.
@@ -61,13 +77,14 @@ export function placedLevel(
   return placement === 'toggle' && level === aimed ? 0 : aimed;
 }
 
-/** The level one of the three heading placements names. */
+/** The level one of the four heading placements names. */
 function headingLevel(placement: HeadingPlacement, enclosing: number): number {
   if (placement === 'root') {
     return MIN_HEADING_LEVEL;
   }
-  if (placement === 'child') {
-    return enclosing + 1;
-  }
-  return Math.max(MIN_HEADING_LEVEL, enclosing);
+
+  // Clamped at `#` because the outline has nothing above it: the parent of an
+  // H1, like a sibling of the note itself, is an H1 and there is no shallower
+  // level left to ask for.
+  return Math.max(MIN_HEADING_LEVEL, enclosing + RELATIVE_OFFSET[placement]);
 }

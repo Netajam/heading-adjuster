@@ -38,18 +38,27 @@ have, after the document and the selection. It is the only scope that reads
 The nearest heading above a line — the one whose **section body** the line sits
 in. A line above every heading in a note has none, and the note itself stands in
 its place at **level zero**.
-_Avoid_: Parent — a parent is a heading's place in the tree, which a line that
-is not yet a heading does not have.
+_Avoid_: "The line's parent" — the **enclosing heading** is not the line's
+parent, because a line that is not yet a heading has no place in the tree at
+all. **Parent** names a placement, and it is the opposite relation: the line
+ends up enclosing that heading.
 
 **Placement**:
 Naming the level a **current line** should take, rather than a distance to move
-it. There are three: **sibling**, **child**, and **plain**. A placement reads the
-**enclosing heading** and never reads how deep the line is written now, which is
-what separates it from an **increase** or a **decrease**.
+it. There are five: **root**, **parent**, **sibling**, **child** and **plain**.
+A placement reads the **enclosing heading** and never reads how deep the line is
+written now, which is what separates it from an **increase** or a **decrease**.
+Every one of them has a command of its own.
 
 **Root**:
 A placement putting the line at `#`, the top of the note, answering to nothing
-above it. Reachable only by pointing a **toggle** at it.
+above it.
+
+**Parent**:
+A placement putting the line one level shallower than the **enclosing heading**,
+so that heading falls inside the new one rather than beside it. The only
+placement that changes what an existing heading answers to, and so the one that
+opens a section above work already written.
 
 **Sibling**:
 A placement putting the line at the **enclosing heading**'s own level, so the two
@@ -64,8 +73,10 @@ A placement putting the line at **level zero** — no heading at all. This is ho
 a heading is taken off outright, whatever level it was written at.
 
 **Toggle target**:
-Which of **root**, **sibling** or **child** a **toggle** is pointed at. The user
-sets it; it ships as **sibling**.
+Which of **root**, **parent**, **sibling** or **child** a **toggle** is pointed
+at. The user sets it; it ships as **sibling**. It decides where the one toggle
+aims and nothing else — each of the four is also a command in its own right, so
+setting it is never a choice about which levels are reachable.
 
 **Toggle**:
 A placement that is its **toggle target** unless the line is already sitting
@@ -116,13 +127,18 @@ out. Only **decrease** does this, and only when explicitly enabled.
 - A **placement** names a level; an **increase** and a **decrease** name a
   distance. Only a placement reads the **enclosing heading**, and only a
   distance reads the level the line is written at
-- **Sibling** and **child** both land on `#` when there is no **enclosing
-  heading**, because the note they sit in is **level zero**
+- **Sibling**, **child** and **parent** all land on `#` when there is no
+  **enclosing heading**, because the note they sit in is **level zero**
+- **Parent** and **child** are one step measured in opposite directions, so a
+  **parent** also stops at `#`: nothing in an outline sits above the top of it
 - A **toggle** pressed twice returns the line it started from. A heading at any
   other level is levelled to the **toggle target** first rather than removed, so
   the second press is what takes it off
 - A **toggle** takes off only the level it puts on: pointed at **child**, it
   leaves a **sibling** heading standing and moves it instead
+- A **toggle target** is a choice about one key, not about the plugin. A user who
+  needs two placements binds their two commands; the **toggle** is for whichever
+  third one they want on a single key or toolbar slot
 - A line's **list marker** and its **heading level** are the same slot: writing
   a heading onto a list item replaces the marker rather than following it, since
   a line cannot be a bullet and a heading at once

@@ -232,6 +232,39 @@ describe('the placement commands find the editor the user is in', () => {
     assert.equal(written(editor, before), '## A\n### some prose');
   });
 
+  test('places the current line over the heading above it', () => {
+    const before = ['## A', '### B', 'some prose'];
+    const editor = fakeEditor([...before], [], 2);
+
+    placeCurrentLine(fakeContext(editor, {}), 'parent');
+
+    assert.equal(written(editor, before), '## A\n### B\n## some prose');
+  });
+
+  test('every placement is reachable without going through the toggle', () => {
+    const expected = {
+      root: '### Setup\n# some prose',
+      parent: '### Setup\n## some prose',
+      sibling: '### Setup\n### some prose',
+      child: '### Setup\n#### some prose',
+      plain: '### Setup\nsome prose',
+    };
+
+    for (const [placement, after] of Object.entries(expected)) {
+      const before = ['### Setup', 'some prose'];
+      const editor = fakeEditor([...before], [], 1);
+      const context = fakeContext(editor, {});
+      // Pointed anywhere but at the placement under test, so one that quietly
+      // followed the toggle would land somewhere its own name does not say.
+      context.toggleTarget = () => (placement === 'child' ? 'root' : 'child');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      placeCurrentLine(context, placement as any);
+
+      assert.equal(written(editor, before), after, placement);
+    }
+  });
+
   test('never reads the plugin default — a placement has no distance', () => {
     const before = ['## A', 'some prose'];
     const editor = fakeEditor([...before], [], 1);
@@ -273,6 +306,7 @@ describe('the toggle command needs only the one binding', () => {
     const before = ['## Setup', 'some prose'];
 
     assert.equal(toggled(before, 'root'), '## Setup\n# some prose');
+    assert.equal(toggled(before, 'parent'), '## Setup\n# some prose');
     assert.equal(toggled(before, 'sibling'), '## Setup\n## some prose');
     assert.equal(toggled(before, 'child'), '## Setup\n### some prose');
   });
